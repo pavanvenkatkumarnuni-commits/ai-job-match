@@ -4,7 +4,7 @@ import "./App.css";
 
 const API = "/api";
 const navItems = [
-  ["matcher","Job matcher"],["resume","Resume & ATS"],["roadmap","Learning roadmap"],
+  ["matcher","Job matcher"],["jobs","Job listings"],["resume","Resume & ATS"],["roadmap","Learning roadmap"],
   ["interview","Interview prep"],["chat","Career chatbot"],["tracker","Applications"],["dashboard","My dashboard"]
 ];
 async function request(path, options = {}, token = "") {
