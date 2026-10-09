@@ -1,44 +1,52 @@
-# AI Job Matcher
+# AI Job Matcher — Career Toolkit
 
-A college-ready full-stack app that ranks demo jobs against a candidate profile or PDF resume.
+A full-stack career discovery demo built with React + Vite, FastAPI, SQLite, PyMuPDF, and scikit-learn.
 
-## Stack
-React + Vite, FastAPI, SQLite, PyMuPDF, scikit-learn. Hybrid score = 60% required-skill overlap + 40% text similarity. Optional sentence embeddings can be enabled by installing `pip install -r requirements-semantic.txt` from the `backend` folder and setting `USE_SENTENCE_TRANSFORMERS=true`; this downloads a model and uses more memory, so it is not recommended for a small free instance.
+## Features
+- Hybrid resume/profile matching: 60% required-skill overlap + 40% TF-IDF text similarity.
+- PDF resume upload and skill-gap explanations.
+- Resume readiness checklist and optional job-description keyword alignment (heuristic, not an official ATS vendor score).
+- Role-based learning roadmap with portfolio project ideas.
+- Interview practice questions, sample answer frameworks, and a quiz.
+- Built-in career chatbot for common resume, interview, learning, and job-search questions. It uses transparent local rules and does not call an external LLM.
+- Demo job filters for role, skills, location, remote mode, and illustrative salary bands.
+- Email/password accounts, signed sessions, saved jobs, profile-match history, and an application tracker.
+- Compare up to three job matches side by side.
+
+## Stack and repository layout
+This repository keeps `app.py`, `features.py`, `database.py`, `matcher.py`, `App.jsx`, `App.css`, `index.html`, `index.css`, `main.jsx`, and `package.json` in the repository root. Vite builds to `dist/`; FastAPI serves that folder and the API from one Render web service.
 
 ## Run locally
 Requirements: Python 3.11+ and Node.js 20+.
 
-Backend terminal:
 ```bash
-cd backend
-python -m venv .venv
-# Windows PowerShell: .venv\Scripts\Activate.ps1
-# macOS/Linux: source .venv/bin/activate
 pip install -r requirements.txt
+npm install
+npm run build
 uvicorn app:app --reload
 ```
-Frontend terminal:
-```bash
-cd frontend
-npm install
-npm run dev
-```
-Open http://localhost:5173. API docs: http://127.0.0.1:8000/docs.
 
-## Test
-From `backend` with the virtual environment active: `pytest -q`
+For frontend hot reload in development, run `npm run dev` in another terminal and open the Vite URL.
 
-## Deploy to Render
-Push this repository to GitHub, then create a Render Web Service connected to it. Use:
-- Build command: `pip install -r backend/requirements.txt && cd frontend && npm install && npm run build`
-- Start command: `cd backend && uvicorn app:app --host 0.0.0.0 --port $PORT`
+## Render deployment
+- Build command: `pip install -r requirements.txt && npm install && npm run build`
+- Start command: `uvicorn app:app --host 0.0.0.0 --port $PORT`
 - Environment variable: `USE_SENTENCE_TRANSFORMERS=false`
-
-The FastAPI service serves the built React app and API from one origin. Demo jobs are seeded into SQLite automatically. SQLite on a free/ephemeral instance can reset after redeploy/restart. For persistent production data, use a managed database.
+- **Required for account security:** set `APP_SECRET_KEY` to a long random secret in Render's Environment settings. Do not commit the secret to GitHub. Existing sessions are invalidated if this value changes.
+- For data persistence across deploys/restarts, configure a persistent disk and set `DB_PATH` to a file path on that disk, or use a managed database. Without persistent storage, SQLite account data may be lost on a free/ephemeral instance.
 
 ## API
 - `GET /api/health`
-- `GET /api/jobs`
+- `GET /api/jobs?role=&skills=&location=&remote=&salary_min=&salary_max=`
 - `POST /api/match` multipart fields: `profile_text` and optional PDF `resume`
+- `POST /api/resume/analyze` JSON: `profile_text`, optional `job_description`
+- `POST /api/roadmap`, `POST /api/interview`, `POST /api/chat`
+- `POST /api/auth/register`, `POST /api/auth/login`, `GET /api/auth/me`
+- Authenticated: `GET /api/dashboard`, `POST /api/history`, `POST/DELETE /api/saved-jobs`, `POST/PATCH/DELETE /api/applications`
 
-The sample job companies/listings are fictional demo data. Scores are similarity estimates, not hiring probabilities. Review and verify all recommendations yourself. Do not commit resumes, credentials, `.env`, virtual environments, `node_modules`, build output, or database files.
+## Important limitations
+- The included job listings and salary bands are fictional sample data, not live vacancies or verified compensation.
+- Match/readiness/keyword scores are estimates and are not hiring probabilities or official ATS vendor scores.
+- The chatbot uses local rule-based guidance; no external LLM API is configured.
+- Resume text should be reviewed by the user. Do not upload sensitive information you do not want processed.
+- For public production use, add rate limiting, email verification, password-reset flow, CSRF/session policy appropriate to the deployment, monitoring, backups, and a managed persistent database. Generate a strong unique `APP_SECRET_KEY`.
