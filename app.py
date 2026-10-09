@@ -10,7 +10,7 @@ from fastapi.staticfiles import StaticFiles
 from database import get_jobs, init_db
 from matcher import match_jobs
 
-ROOT_DIR = Path(__file__).resolve().parent.parent
+ROOT_DIR = Path(__file__).resolve().parent
 FRONTEND_DIST = ROOT_DIR / "frontend" / "dist"
 MAX_RESUME_BYTES = 5 * 1024 * 1024
 MAX_PROFILE_CHARS = 50_000
