@@ -4,7 +4,7 @@ from pathlib import Path
 from typing import Optional
 
 from fastapi import APIRouter, Depends, Header, HTTPException
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, Field
 
 router = APIRouter(prefix="/api")
 DB_PATH = Path(os.getenv("DB_PATH", str(Path(__file__).parent / "jobs.db")))
@@ -48,6 +48,7 @@ class AuthBody(BaseModel):
     password: str = Field(min_length=8, max_length=128)
 class ProfileBody(BaseModel):
     profile_text: str = Field(min_length=10, max_length=50000)
+    job_description: str = Field(default="", max_length=20000)
 class RoadmapBody(BaseModel):
     target_role: str = Field(min_length=2, max_length=120)
     current_skills: list[str] = []
@@ -111,7 +112,14 @@ def analyze_resume(body: ProfileBody):
     if not sections["Education"]: suggestions.append("Include your degree, institution, and expected graduation year.")
     if not re.search(r"\b(achieved|improved|reduced|increased|built|developed|automated|%|\d+)\b",text,re.I): suggestions.append("Quantify impact where truthful (e.g., records processed, latency reduced, or users supported).")
     score=min(100, max(15, 35+min(len(found)*4,36)+sum(sections.values())*5+(10 if word_count>=100 else 0)))
-    return {"resume_score":score,"word_count":word_count,"detected_skills":found,"sections":sections,"suggestions":suggestions,"disclaimer":"Heuristic feedback, not an official ATS score. Review for accuracy and tailor to each job."}
+    job_text=body.job_description.strip()
+    job_keywords=skills_in(job_text) if job_text else []
+    matched_keywords=sorted(set(found) & set(job_keywords))
+    missing_keywords=sorted(set(job_keywords) - set(found))
+    ats_score=round(100*len(matched_keywords)/len(job_keywords)) if job_keywords else None
+    if job_text and missing_keywords:
+        suggestions.append("For the selected job description, consider adding truthful evidence for: "+", ".join(missing_keywords)+".")
+    return {"resume_score":score,"ats_score":ats_score,"job_keywords":job_keywords,"matched_keywords":matched_keywords,"missing_keywords":missing_keywords,"word_count":word_count,"detected_skills":found,"sections":sections,"suggestions":suggestions,"disclaimer":"Heuristic feedback, not an official ATS score. Review for accuracy and tailor to each job."}
 
 @router.post("/roadmap")
 def roadmap(body: RoadmapBody):
