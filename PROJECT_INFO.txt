@@ -1,0 +1,1 @@
+AI Job Matcher: React + FastAPI + SQLite college project. See README.md for setup, tests, and Render deployment.

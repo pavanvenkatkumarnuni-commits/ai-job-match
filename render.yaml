@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: ai-job-matcher
+    runtime: python
+    buildCommand: pip install -r backend/requirements.txt && cd frontend && npm install && npm run build
+    startCommand: cd backend && uvicorn app:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.8
+      - key: USE_SENTENCE_TRANSFORMERS
+        value: "false"
