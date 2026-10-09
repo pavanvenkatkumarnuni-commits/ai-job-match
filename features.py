@@ -8,7 +8,7 @@ from pydantic import BaseModel, Field
 
 router = APIRouter(prefix="/api")
 DB_PATH = Path(os.getenv("DB_PATH", str(Path(__file__).parent / "jobs.db")))
-SECRET = os.getenv("APP_SECRET_KEY", "development-only-change-this-before-production").encode()
+SECRET = (os.getenv("APP_SECRET_KEY") or secrets.token_hex(32)).encode()
 SKILLS = ["Python","SQL","JavaScript","React","FastAPI","REST API","Machine Learning","scikit-learn","pandas","NumPy","Statistics","Excel","Data Visualization","Git","Docker","AWS","Java","C++","HTML","CSS","Testing","pytest","Linux","Communication","Problem Solving","Django","Flask","Power BI","API Testing"]
 SKILL_RE = {s: re.compile(r"(?<![a-z0-9+#])"+re.escape(s.lower())+r"(?![a-z0-9+#])") for s in SKILLS}
 
